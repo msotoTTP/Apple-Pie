@@ -25,19 +25,49 @@ class ViewController: UIViewController {
         newRound()
     }
     
+    func enableLetterButtons(_ enable: Bool) {
+        for button in letterButtons {
+            button.isEnabled = enable
+        }
+    }
+    
     func newRound() {
-        let newWord = listOfWords.removeFirst()
-        currentGame = Game(word: newWord, incorrectMovesRemaining: incorrectMovesAllowed)
-        updateUI()
+        if !listOfWords.isEmpty {
+            let newWord = listOfWords.removeFirst()
+            currentGame = Game(word: newWord, incorrectMovesRemaining: incorrectMovesAllowed, guessedLetters: [])
+            enableLetterButtons(true)
+            updateUI()
+        } else {
+            enableLetterButtons(false)
+        }
     }
     
     func updateUI() {
         scoreLabel.text = "Wins: \(totalWins), Losses: \(totalLosses)"
+        correctWordLabel.text = currentGame.formattedWord
         treeImageView.image = UIImage(named: "Tree \(currentGame.incorrectMovesRemaining)")
+    }
+    
+    func updateGameState() {
+        if currentGame.incorrectMovesRemaining == 0 {
+            totalLosses += 1
+            newRound()
+        } else if currentGame.word == currentGame.formattedWordWithoutSpaces {
+            totalWins += 1
+            newRound()
+        }
+        updateUI()
     }
 
     @IBAction func letterButtonPressed(_ sender: UIButton) {
         sender.isEnabled = false
+        
+        //figure out letter the user guessed
+        let letterString = sender.configuration!.title!
+        let letter = Character(letterString.lowercased())
+        
+        currentGame.playerGuessed(letter: letter)
+        updateGameState()
     }
     
 }
